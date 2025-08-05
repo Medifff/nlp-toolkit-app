@@ -18,11 +18,6 @@ def load_summarization_pipeline():
     return pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
 
 @st.cache_resource
-def load_ner_pipeline():
-    """Loads the pre-trained Named Entity Recognition pipeline."""
-    return pipeline("ner", grouped_entities=True)
-
-@st.cache_resource
 def load_text_generation_pipeline():
     """Loads the pre-trained text generation pipeline."""
     return pipeline("text-generation", model="gpt2")
@@ -34,14 +29,13 @@ st.title("Multi-Purpose NLP Toolkit")
 try:
     sentiment_pipeline = load_sentiment_pipeline()
     summarization_pipeline = load_summarization_pipeline()
-    ner_pipeline = load_ner_pipeline()
     text_generation_pipeline = load_text_generation_pipeline()
 except Exception as e:
     st.error(f"Error loading a model: {e}")
     st.stop()
 
 # --- UI Tabs for different modes ---
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Sentiment", "Batch Sentiment", "Summarization", "NER", "Text Generation"])
+tab1, tab2, tab3, tab4 = st.tabs(["Sentiment", "Batch Sentiment", "Summarization", "Text Generation"])
 
 # --- Tab 1: Single Text Analysis ---
 with tab1:
@@ -146,34 +140,9 @@ with tab3:
         else:
             st.warning("Please paste some text to summarize.")
 
-# --- Tab 4: Named Entity Recognition (NER) ---
+
+# --- Tab 4: Text Generation ---
 with tab4:
-    st.header("Find Named Entities in Text")
-    st.write("Paste text and the model will find and categorize entities like people (PER), organizations (ORG), and locations (LOC).")
-
-    ner_text = st.text_area(
-        "Paste your text for NER here:",
-        height=200,
-        value="Apple Inc. was founded by Steve Jobs, Steve Wozniak, and Ronald Wayne in Cupertino, California. Tim Cook is the current CEO."
-    )
-
-    if st.button("Find Entities"):
-        if ner_text:
-            with st.spinner("Finding entities..."):
-                entities = ner_pipeline(ner_text)
-                
-                st.subheader("Found Entities")
-                if entities:
-                    df_entities = pd.DataFrame(entities)
-                    df_entities.rename(columns={'entity_group': 'Category', 'word': 'Entity', 'score': 'Confidence'}, inplace=True)
-                    st.dataframe(df_entities[['Category', 'Entity', 'Confidence']])
-                else:
-                    st.info("No named entities were found in the text.")
-        else:
-            st.warning("Please enter some text to analyze.")
-
-# --- Tab 5: Text Generation ---
-with tab5:
     st.header("Generate Text from a Prompt")
     st.write("Enter a starting phrase and the model will continue writing from it.")
 
